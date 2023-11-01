@@ -3,3 +3,4 @@ __pycache__/
 .ipynb_checkpoints/
 notebooks/mnist_data/
 *.gz
+.DS_Store
