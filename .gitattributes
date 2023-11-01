@@ -1,0 +1,2 @@
+# neglect jupyter in Github language stats
+*.ipynb linguist-generated
