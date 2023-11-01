@@ -18,9 +18,19 @@ jobs:
       with:
         python-version: 3.11
 
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache/pip
+          ~/.conda
+        key: ${{ runner.os }}-pip-conda-${{ hashFiles('requirements.txt') }}
+
     - name: Install dependencies
-      run: pip install -r requirements.txt
+      run: |
+        pip install -r requirements.txt
+      env:
+        PIP_CACHE_DIR: ~/.cache/pip
 
     - name: Run tests
-      run: python3 -m pytest  # Assuming your tests are located in a 'test' folder
-
+      run: python3 -m pytest
