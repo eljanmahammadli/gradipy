@@ -1,7 +1,7 @@
 
 # gradipy: A Lightweight Neural Network Library
 
-gradipy is an evolving project, and while it will potentially provide PyTorch-like API for building and training neural networks, there are some features are actively developed on and plan to support in future releases.
+gradipy is an evolving project, and it will potentially provide PyTorch-like API for building and training neural networks, there are some features that are actively developed on and plan to support in future releases.
 
 ## Desired features to add:
 - PyTorch like API for most important blocks for training NNs 
