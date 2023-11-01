@@ -12,8 +12,9 @@ def cmp(item1, item2, tol=1e-6):
 
 def test_softmax():
     """Test softmax's forward and backward function."""
-    x = [[0.5, 0.5], [7, 4], [9, 3]]
-    y = torch.tensor([0, 1, 0])
+    m, c = 1000, 10  # batch size, number of classes
+    x = np.random.rand(m, c)
+    y = torch.randint(0, c, (m,))
     # pytorch
     logits = torch.tensor(x, requires_grad=True)
     probs = F.softmax(logits, dim=1)
