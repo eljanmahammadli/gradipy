@@ -26,19 +26,19 @@ class SimpleNeuralNet:
     self.W2 = gp.random.uniform(64, 10)
 
   def forward(self, x):
-    z = x @ W1
+    z = x @ self.W1
     a = z.relu()
-    logits = a @ l2
+    logits = a @ self.W2
     probs = logits.softmax()
     return probs
 
 model = SimpleNeuralNet()
-criterion = gp.nn.CrossEntropyLoss(x)
+criterion = gp.nn.CrossEntropyLoss()
 optimizer = gp.optim.Adam(model.parameters(), lr=0.001)
 
 for epoch in range(100):
-  outputs = model.forward(x)
-  loss = criterion(outputs, y)
+  output = model.forward(x)
+  loss = criterion(output, y)
   optimizer.step.zero_grad()
   loss.backward()
   optimizer.step()
