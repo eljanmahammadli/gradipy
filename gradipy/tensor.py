@@ -65,14 +65,19 @@ class Tensor:
         out._backward = _backward
         return out
 
-    def softmax(self, ys):
+    def log(self):
+        out = Tensor(np.log(self.data))
+        return out
+
+    def softmax(self, target=None):
         exps = np.exp(self.data - np.max(self.data, axis=1, keepdims=True))
         probs = exps / np.sum(exps, axis=1, keepdims=True)
         out = Tensor(probs, _children=(self,))
 
         def _backward():
             self.grad += (
-                (probs - np.eye(probs.shape[1], dtype=np.float32)[ys]) / probs.shape[0]
+                (probs - np.eye(probs.shape[1], dtype=np.float32)[target.data])
+                / probs.shape[0]
             ) * out.grad
 
         out._backward = _backward
