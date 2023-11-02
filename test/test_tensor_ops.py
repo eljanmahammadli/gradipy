@@ -26,3 +26,26 @@ def test_softmax():
     # test
     np.testing.assert_allclose(rgp, rpt)
     np.testing.assert_allclose(ggp, gpt)
+
+
+def test_matmul():
+    # create data
+    m, n, h = 15, 20, 30
+    a = np.random.randn(m, n).astype(np.float32)
+    b = np.random.randn(n, h).astype(np.float32)
+    # pytorch
+    apt = torch.tensor(a, requires_grad=True)
+    bpt = torch.tensor(b, requires_grad=True)
+    mpt = apt @ bpt
+    mpt.backward(gradient=torch.ones_like(mpt, dtype=torch.float32))
+    rpt, agpt, bgpt = mpt.data.numpy(), apt.grad.numpy(), bpt.grad.numpy()
+    # gradipy
+    agp = Tensor(a)
+    bgp = Tensor(b)
+    mgp = agp @ bgp
+    mgp.backward()
+    rgp, aggp, bggp = mgp.data, agp.grad, bgp.grad
+    # compare
+    np.testing.assert_allclose(rgp, rpt, atol=1e-5)
+    np.testing.assert_allclose(aggp, agpt, atol=1e-5)
+    np.testing.assert_allclose(bggp, bgpt, atol=1e-5)
