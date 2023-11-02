@@ -5,29 +5,24 @@ import torch.nn.functional as F
 from gradipy.tensor import Tensor
 
 
-def cmp(item1, item2, tol=1e-6):
-    """Utility function to compare two numpy arrays."""
-    return np.allclose(item1, item2, rtol=tol, atol=tol)
-
-
 def test_softmax():
     """Test softmax's forward and backward function."""
-    m, c = 1000, 10  # batch size, number of classes
-    x = np.random.rand(m, c)
-    y = torch.randint(0, c, (m,))
+    # create data
+    m, c = 10000, 10  # batch size, number of classes
+    l = np.random.rand(m, c)
+    y = np.random.randint(0, c, (m,))
     # pytorch
-    logits = torch.tensor(x, requires_grad=True)
-    probs = F.softmax(logits, dim=1)
-    loss = F.cross_entropy(logits, y)
-    loss.backward()
-    ppt, gpt = probs.data.numpy(), logits.grad.numpy()
+    lpt = torch.tensor(l, requires_grad=True)
+    ypt = torch.tensor(y)
+    ppt = F.softmax(lpt, dim=1)
+    losspt = F.cross_entropy(lpt, ypt)
+    losspt.backward()
+    rpt, gpt = ppt.data.numpy(), lpt.grad.numpy()
     # gradipy
-    logits = Tensor(x, requires_grad=True)
-    probs = logits.softmax(y)
-    probs.requires_grad = True
-    probs._backward()
-
+    lgp = Tensor(l)
+    pgp = lgp.softmax(y)
+    pgp.backward()
+    rgp, ggp = pgp.data, lgp.grad
     # test
-    tol = 1e-6
-    p, g = probs.data, logits.grad
-    assert cmp(p, ppt, tol) & cmp(g, gpt, tol)
+    np.testing.assert_allclose(rgp, rpt)
+    np.testing.assert_allclose(ggp, gpt)
