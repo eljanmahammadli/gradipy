@@ -1,5 +1,6 @@
 
 # gradipy: A Lightweight Neural Network Library
+![Tests](https://github.com/eljanmahammadli/gradipy/actions/workflows/ci.yml/badge.svg)
 
 gradipy is an evolving project, and it will potentially provide PyTorch-like API for building and training neural networks, there are some features that are actively developed on and plan to support in future releases.
 
