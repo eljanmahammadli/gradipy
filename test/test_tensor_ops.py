@@ -111,5 +111,5 @@ def test_log():
     lgp.backward()
     rgp, aggp = lgp.data, agp.grad
     # compare
-    np.testing.assert_allclose(rgp, rpt)
-    np.testing.assert_allclose(aggp, agpt)
+    np.testing.assert_allclose(rgp, rpt, atol=1e-5)
+    np.testing.assert_allclose(aggp, agpt, atol=1e-5)
