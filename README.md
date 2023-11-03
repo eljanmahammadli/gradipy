@@ -68,3 +68,4 @@ Here's a list of features we plan to implement in gradipy, along with their curr
 - [x] Autograd just like PyTorch's `backward` method using topological sort
 - [x] Cross Entropy Loss function 
 - [x] Train MNIST with `gradipy`
+- [x] Kaiming init
