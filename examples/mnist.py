@@ -6,7 +6,7 @@ from gradipy import nn, datasets
 input_dim = 28 * 28
 output_dim = 10
 hidden_dim = 128
-lr = 0.1
+lr = 0.001
 epochs = 1000
 batch_size = 32
 
@@ -47,7 +47,7 @@ class DenseNeuralNetwork:
 # initialize the model, loss function and optimizer
 model = DenseNeuralNetwork(input_dim, hidden_dim, output_dim)
 criterion = nn.CrossEntropyLoss()
-optimizer = nn.SGD([model.W1, model.W2], lr=lr)
+optimizer = nn.Adam([model.W1, model.W2], lr=lr)
 
 # training loop
 for epoch in range(epochs + 1):

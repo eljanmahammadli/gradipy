@@ -21,6 +21,7 @@ class Tensor:
     def reshape(self, *shape):
         return Tensor(self.data.reshape(*shape))
 
+    # https://stackoverflow.com/questions/45428696
     def _broadcast(self, other):
         bx, by = np.broadcast_arrays(self.data, other.data)
         ax = tuple(
