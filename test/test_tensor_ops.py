@@ -94,3 +94,22 @@ def test_matmul_relu():
     np.testing.assert_allclose(rgp, rpt, atol=1e-5)
     np.testing.assert_allclose(aggp, agpt, atol=1e-5)
     np.testing.assert_allclose(bggp, bgpt, atol=1e-5)
+
+
+def test_log():
+    # create data
+    m, n = 50, 15
+    a = np.random.rand(m, n).astype(np.float32)
+    # pytorch
+    apt = torch.tensor(a, requires_grad=True)
+    lpt = apt.log()
+    lpt.backward(gradient=torch.ones_like(lpt, dtype=torch.float32))
+    rpt, agpt = lpt.data.numpy(), apt.grad.numpy()
+    # gradipy
+    agp = Tensor(a)
+    lgp = agp.log()
+    lgp.backward()
+    rgp, aggp = lgp.data, agp.grad
+    # compare
+    np.testing.assert_allclose(rgp, rpt)
+    np.testing.assert_allclose(aggp, agpt)
