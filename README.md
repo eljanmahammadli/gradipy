@@ -52,15 +52,19 @@ Here's a list of features we plan to implement in gradipy, along with their curr
 
 ### To-Do
 
-- [ ] Linear layers
-- [ ] Activation functions
-- [ ] Loss functions
-- [ ] Basic optimizer support
+- [ ] Backward passes for: `mul`, `sub`, `log`, `tanh`
+- [ ] Add more operations and their gradients
+- [ ] PyTorch's `nn.Module`
+- [ ] Loss functions (`nn.MSELoss` and `nn.NLLLoss`)
+- [ ] Basic optimizer support (SGD, Adam)
 - [ ] Convolutional layers for image processing
 - [ ] Recurrent layers for sequence data
 - [ ] GPU acceleration
 
 ### Done
 
-- [x] Basic Tensor definition like wrapper around NumPy `ndarray`
-- [x] Softmax function and its derivative
+- [x] Basic Tensor wrapper around NumPy `ndarray`
+- [x] Forward and backward passes implemented for: `add`, `matmul`, `softmax`, `relu`
+- [x] Autograd just like PyTorch's `backward` method using topological sort
+- [x] Cross Entropy Loss function 
+- [x] Train MNIST with `gradipy`
