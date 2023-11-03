@@ -50,4 +50,5 @@ def MNIST(path="../data/mnist_data"):
         X[split_idx:],
         y[split_idx:],
     )
-    return (X_train, y_train, X_val, y_val, X_test, y_test)
+    X_train, X_val, X_test = X_train / 255.0, X_val / 255.0, X_test / 255.0  # normalize
+    return X_train, y_train, X_val, y_val, X_test, y_test

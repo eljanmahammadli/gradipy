@@ -67,6 +67,11 @@ class Tensor:
 
     def log(self):
         out = Tensor(np.log(self.data))
+
+        def backward():
+            self.grad += 1.0 / self.data * out.grad
+
+        out._backward = backward
         return out
 
     def softmax(self, target=None):
