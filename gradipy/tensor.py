@@ -14,9 +14,6 @@ class Tensor:
     def __repr__(self):
         return f"Tensor({self.data})"
 
-    def zero_grad(self):
-        self.grad = np.zeros_like(self.data, dtype=np.float32)
-
     @property
     def shape(self):
         return self.data.shape

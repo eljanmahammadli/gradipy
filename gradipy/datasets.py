@@ -1,10 +1,10 @@
 import os
-import urllib
+import urllib.request
 import gzip
 import numpy as np
 
 
-def MNIST(path="../data/mnist_data"):
+def MNIST(path="./data/mnist_data"):
     base_url = "http://yann.lecun.com/exdb/mnist/"
     files = [
         "train-images-idx3-ubyte.gz",
