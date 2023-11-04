@@ -5,3 +5,4 @@ notebooks/mnist_data/
 *.gz
 .DS_Store
 notebooks/compare-with-pytorch.ipynb
+archive/

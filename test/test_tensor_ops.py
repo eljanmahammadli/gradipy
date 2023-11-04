@@ -5,29 +5,6 @@ import torch.nn.functional as F
 from gradipy.tensor import Tensor
 
 
-def test_softmax():
-    """Test softmax's forward and backward function."""
-    # create data
-    m, c = 10000, 10  # batch size, number of classes
-    l = np.random.rand(m, c)
-    y = np.random.randint(0, c, (m,))
-    # pytorch
-    lpt = torch.tensor(l, requires_grad=True)
-    ypt = torch.tensor(y)
-    ppt = F.softmax(lpt, dim=1)
-    losspt = F.cross_entropy(lpt, ypt)
-    losspt.backward()
-    rpt, gpt = ppt.data.numpy(), lpt.grad.numpy()
-    # gradipy
-    lgp = Tensor(l)
-    pgp = lgp.softmax(y)
-    pgp.backward()
-    rgp, ggp = pgp.data, lgp.grad
-    # test
-    np.testing.assert_allclose(rgp, rpt)
-    np.testing.assert_allclose(ggp, gpt)
-
-
 def test_matmul():
     # create data
     m, n, h = 15, 20, 30
@@ -113,3 +90,26 @@ def test_log():
     # compare
     np.testing.assert_allclose(rgp, rpt, atol=1e-5)
     np.testing.assert_allclose(aggp, agpt, atol=1e-5)
+
+
+def test_log_softmax():
+    xi = np.random.randn(5, 3).astype(np.float32)
+    yi = np.random.randn(3, 4).astype(np.float32)
+    zi = np.random.randn(4, 3).astype(np.float32)
+
+    def test_pytorch():
+        x, y, z = torch.tensor(xi), torch.tensor(yi), torch.tensor(zi)
+        for p in [x, y, z]:
+            p.requires_grad = True
+        out = x.matmul(y).log_softmax(dim=1).matmul(z)
+        out.backward(gradient=(torch.ones_like(out, dtype=torch.float32)))
+        return out.detach().numpy(), x.grad.numpy(), y.grad.numpy(), z.grad.numpy()
+
+    def test_gradipy():
+        x, y, z = Tensor(xi), Tensor(yi), Tensor(zi)
+        out = x.matmul(y).log_softmax().matmul(z)
+        out.backward()
+        return out.data, x.grad, y.grad, z.grad
+
+    for x, y in zip(test_pytorch(), test_gradipy()):
+        np.testing.assert_allclose(x, y, atol=1e-6)

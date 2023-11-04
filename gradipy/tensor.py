@@ -6,7 +6,7 @@ class Tensor:
         self.data = (
             data if isinstance(data, np.ndarray) else np.array(data, dtype=np.float32)
         )
-        # ones_like is for test purposes only
+        # TODO: implement requires_grad parameter
         self.grad = np.zeros_like(self.data, dtype=np.float32)
         self._backward = lambda: None
         self._prev = set(_children)
@@ -47,11 +47,21 @@ class Tensor:
         out._backward = _backward
         return out
 
-    def __mul__(self, other):
-        return Tensor(self.data * other.data)
+    def __neg__(self):
+        return self * -1.0
 
     def __sub__(self, other):
-        return Tensor(self.data - other.data)
+        return self + (-other)
+
+    def __mul__(self, other):
+        out = Tensor(self.data * other.data, _children=(self, other))
+
+        def _backward():
+            self.grad += other.data * out.grad
+            other.grad += self.data * out.grad
+
+        out._bacward = _backward
+        return out
 
     def __matmul__(self, other):
         out = Tensor(self.data @ other.data, _children=(self, other))
@@ -64,7 +74,7 @@ class Tensor:
         return out
 
     def log(self):
-        out = Tensor(np.log(self.data))
+        out = Tensor(np.log(self.data), _children=(self,))
 
         def backward():
             self.grad += 1.0 / self.data * out.grad
@@ -72,16 +82,41 @@ class Tensor:
         out._backward = backward
         return out
 
-    def softmax(self, target=None):
+    def exp(self):
+        out = Tensor(np.exp(self.data), _children=(self,))
+
+        def _backward():
+            self.grad += out.data * out.grad
+
+        out._backward = _backward
+        return out
+
+    def matmul(self, other):
+        return self @ other
+
+    def softmax(self):
         exps = np.exp(self.data - np.max(self.data, axis=1, keepdims=True))
         probs = exps / np.sum(exps, axis=1, keepdims=True)
         out = Tensor(probs, _children=(self,))
 
         def _backward():
-            self.grad += (
-                (probs - np.eye(probs.shape[1], dtype=np.float32)[target.data])
-                / probs.shape[0]
-            ) * out.grad
+            # this is wrong
+            self.grad += np.zeros_like(out.data, dtype=np.float32)
+
+        out._backward = _backward
+        return out
+
+    def log_softmax(self):
+        exps = np.exp(self.data - np.max(self.data, axis=1, keepdims=True))
+        probs = exps / np.sum(exps, axis=1, keepdims=True)
+        logprobs = np.log(probs)
+        out = Tensor(logprobs, _children=(self,))
+
+        def _backward():
+            # this is probably not scalable
+            self.grad += out.grad - np.exp(out.data) * out.grad.sum(axis=1).reshape(
+                -1, 1
+            )
 
         out._backward = _backward
         return out
