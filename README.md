@@ -16,7 +16,7 @@ Please note that the library is currently in its early stages, and these feature
 
 ## Sample Usage
 
-Here's a basic example of using gradipy to create and train a simple neural network for MNIST (please refer to the [example usage]([example/mnist.py](https://github.com/eljanmahammadli/gradipy/blob/main/examples/mnist.py))): 
+Here's a basic example of using gradipy to create and train a simple neural network for MNIST (please refer to the [example usage](https://github.com/eljanmahammadli/gradipy/blob/main/examples/mnist.py)): 
 
 ```python
 import gradipy.nn as nn
