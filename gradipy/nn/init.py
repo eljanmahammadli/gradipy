@@ -2,6 +2,7 @@ import math
 import numpy as np
 from gradipy.tensor import Tensor
 
+# https://pytorch.org/docs/stable/nn.init.html
 gain = {"relu": math.sqrt(2), "sigmoid": 1, "tanh": 5 / 3}
 
 
