@@ -60,11 +60,11 @@ Here's a list of features we plan to implement in gradipy, along with their curr
 ### To-Do
 
 - [ ] Backward passes for: `mul` (problem with broadcasting), `tanh`
-- [ ] Adam more init methods (e.g, Xavier)
 - [ ] Add more operations and their gradients
+- [ ] Batchnorm
+- [ ] Convolutional layers for image processing
 - [ ] PyTorch's `nn.Module`
 - [ ] More Loss functions (`nn.MSELoss` and `nn.NLLLoss`)
-- [ ] Convolutional layers for image processing
 - [ ] Recurrent layers for sequence data
 - [ ] GPU acceleration (no idea how to do that)
 
@@ -75,5 +75,5 @@ Here's a list of features we plan to implement in gradipy, along with their curr
 - [x] Autograd just like PyTorch's `backward` method using topological sort
 - [x] nn.CrossEntropyLoss function 
 - [x] Train MNIST with `gradipy`
-- [x] Kaiming init
-- [ ] Implemented Adam and added momentum to SGD
+- [x] Kaiming, Xavier init (normal + uniform)
+- [x] Implemented Adam and added momentum to SGD
