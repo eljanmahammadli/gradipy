@@ -100,7 +100,7 @@ class Tensor:
         out = Tensor(probs, _children=(self,))
 
         def _backward():
-            # this is wrong
+            # TODO: correct this backward pass
             self.grad += np.zeros_like(out.data, dtype=np.float32)
 
         out._backward = _backward
@@ -113,7 +113,7 @@ class Tensor:
         out = Tensor(logprobs, _children=(self,))
 
         def _backward():
-            # this is probably not scalable
+            # TODO: implement scalable backward pass
             self.grad += out.grad - np.exp(out.data) * out.grad.sum(axis=1).reshape(
                 -1, 1
             )
@@ -126,6 +126,20 @@ class Tensor:
 
         def _backward():
             self.grad += (out.data > 0).astype(np.float32) * out.grad
+
+        out._backward = _backward
+        return out
+
+    def cross_entropy(self, target):
+        logprobs = self.log_softmax()
+        n = logprobs.shape[0]
+        out = Tensor(-logprobs.data[range(n), target.data].mean(), _children=(self,))
+
+        def _backward():
+            dlogits = self.softmax().data
+            dlogits[range(n), target.data] -= 1
+            dlogits /= n
+            self.grad += dlogits * out.grad
 
         out._backward = _backward
         return out

@@ -12,12 +12,16 @@ class Optimizer:
 
 
 class SGD(Optimizer):
-    def __init__(self, params, lr=0.01):
+    def __init__(self, params, lr=0.01, momentum=0.9):
         super().__init__(params, lr)
+        self.momentum = momentum
 
     def step(self):
         for param in self.params:
-            param.data = param.data - self.lr * param.grad
+            if not hasattr(param, "velocity"):
+                param.velocity = np.zeros_like(param.data, dtype=np.float32)
+            param.velocity = self.momentum * param.velocity - self.lr * param.grad
+            param.data += param.velocity
 
 
 class Adam(Optimizer):

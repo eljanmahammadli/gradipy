@@ -1,8 +1,9 @@
-import pytest
 import numpy as np
 import torch
 import torch.nn.functional as F
+import torch.nn as ptnn  # to avoid name conflict with gradipy.
 from gradipy.tensor import Tensor
+import gradipy.nn as nn
 
 
 def test_matmul():
@@ -110,6 +111,54 @@ def test_log_softmax():
         out = x.matmul(y).log_softmax().matmul(z)
         out.backward()
         return out.data, x.grad, y.grad, z.grad
+
+    for x, y in zip(test_pytorch(), test_gradipy()):
+        np.testing.assert_allclose(x, y, atol=1e-6)
+
+
+def test_cross_entropy():
+    n, c = 32, 10  # batch and class size
+    xi = np.random.randn(n, c).astype(np.float32)  # logits
+    yi = np.random.randint(0, c, size=(n,)).astype(np.int32)  # ground truth
+
+    def test_pytorch():
+        x = torch.tensor(xi, dtype=torch.float32, requires_grad=True)
+        y = torch.tensor(yi, dtype=torch.long)
+        loss = F.cross_entropy(x, y)
+        loss.backward()
+        return loss.detach().numpy(), x.grad.numpy()
+
+    def test_gradipy():
+        x = Tensor(xi)
+        y = Tensor(yi)
+        loss = x.cross_entropy(y)
+        loss.backward()
+        return loss.data, x.grad
+
+    for x, y in zip(test_pytorch(), test_gradipy()):
+        np.testing.assert_allclose(x, y, atol=1e-6)
+
+
+def test_cross_entropy_loss():
+    n, c = 32, 10  # batch and class size
+    xi = np.random.randn(n, c).astype(np.float32)  # logits
+    yi = np.random.randint(0, c, size=(n,)).astype(np.int32)  # ground truth
+
+    def test_pytorch():
+        x = torch.tensor(xi, dtype=torch.float32, requires_grad=True)
+        y = torch.tensor(yi, dtype=torch.long)
+        criterion = ptnn.CrossEntropyLoss()
+        loss = criterion(x, y)
+        loss.backward()
+        return loss.detach().numpy(), x.grad.numpy()
+
+    def test_gradipy():
+        x = Tensor(xi)
+        y = Tensor(yi)
+        criterion = nn.CrossEntropyLoss()
+        loss = criterion(x, y)
+        loss.backward()
+        return loss.data, x.grad
 
     for x, y in zip(test_pytorch(), test_gradipy()):
         np.testing.assert_allclose(x, y, atol=1e-6)
