@@ -6,3 +6,6 @@ notebooks/mnist_data/
 .DS_Store
 notebooks/compare-with-pytorch.ipynb
 archive/
+dist/
+build/
+*.egg-info/
