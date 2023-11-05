@@ -1,9 +1,11 @@
-from typing import Union, Sequence
+from typing import Union, Sequence, Tuple
 import numpy as np
 
 
 class Tensor:
-    def __init__(self, data: Union[list, np.ndarray], _children=()) -> None:
+    def __init__(
+        self, data: Union[list, np.ndarray], _children: Tuple["Tensor"] = ()
+    ) -> None:
         self.data = (
             data if isinstance(data, np.ndarray) else np.array(data, dtype=np.float32)
         )
@@ -16,7 +18,7 @@ class Tensor:
         return f"Tensor({self.data})"
 
     @property
-    def shape(self) -> tuple:
+    def shape(self) -> Tuple[int]:
         return self.data.shape
 
     def reshape(self, *shape: Sequence[int]) -> "Tensor":
@@ -51,10 +53,10 @@ class Tensor:
     def __neg__(self) -> "Tensor":
         return self * -1.0
 
-    def __sub__(self, other: "Tensor"):
+    def __sub__(self, other: "Tensor") -> "Tensor":
         return self + (-other)
 
-    def __mul__(self, other: "Tensor"):
+    def __mul__(self, other: "Tensor") -> "Tensor":
         out = Tensor(self.data * other.data, _children=(self, other))
 
         def _backward() -> None:
