@@ -24,6 +24,7 @@ class SGD(Optimizer):
             param.data += param.velocity
 
 
+# https://arxiv.org/abs/1412.6980
 class Adam(Optimizer):
     def __init__(self, params, lr=0.001, b1=0.9, b2=0.999, eps=1e-8):
         super().__init__(params, lr)
