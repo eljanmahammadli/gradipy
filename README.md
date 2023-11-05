@@ -16,7 +16,7 @@ Please note that the library is currently in its early stages, and these feature
 
 ## Sample Usage
 
-Here's a basic example of using gradipy to create and train a simple neural network for MNIST (please refer to the [example usage](https://github.com/eljanmahammadli/gradipy/blob/main/examples/mnist.py)): 
+In this example, we define a simple feedforward neural network to train classifier on the MNIST data. (please refer to the [example usage](https://github.com/eljanmahammadli/gradipy/blob/main/examples/mnist.py)): 
 
 ```python
 import gradipy.nn as nn
@@ -50,8 +50,6 @@ for epoch in range(epochs + 1):
 
     # log the results on each epoch...
 ```
-
-In this example, we define a simple feedforward neural network, compile it, and train it on random data. gradipy will provide building blocks like `Linear` layers, `activation` functions, `loss` functions, and `optimizers` for creating and training neural networks.
 
 ## Installation
 You can install gradipy using `pip`. It is recommended to create a virtual environment before installing the library.
