@@ -14,35 +14,41 @@ Please note that the library is currently in its early stages, and these feature
 
 
 
-## Desired Sample Usage
+## Sample Usage
 
-Here's a basic desired example of using gradipy to create and train a simple neural network for image classification:
+Here's a basic example of using gradipy to create and train a simple neural network for MNIST (please refer to the [example usage]([example/mnist.py](https://github.com/eljanmahammadli/gradipy/blob/main/examples/mnist.py))): 
 
 ```python
-import gradipy as gp
+import gradipy.nn as nn
+from gradipy import datasets
+from gradipy.nn import optim
 
-class SimpleNeuralNet:
-  def __init__(self):
-    self.W1 = gp.random.uniform(256, 64)
-    self.W2 = gp.random.uniform(64, 10)
+X_train, y_train, X_val, y_val, X_test, y_test = datasets.MNIST()
 
-  def forward(self, x):
-    z = x @ self.W1
-    a = z.relu()
-    logits = a @ self.W2
-    probs = logits.softmax()
-    return probs
+# define some utility function here...
 
-model = SimpleNeuralNet()
-criterion = gp.nn.CrossEntropyLoss()
-optimizer = gp.optim.Adam(model.parameters(), lr=0.001)
+class DenseNeuralNetwork:
+    def __init__(self, input_dim, hidden_dim, output_dim):
+        self.W1 = nn.init_kaiming_normal(input_dim, hidden_dim, nonlinearity="relu")
+        self.W2 = nn.init_kaiming_normal(hidden_dim, output_dim, nonlinearity="relu")
 
-for epoch in range(100):
-  output = model.forward(x)
-  loss = criterion(output, y)
-  optimizer.step.zero_grad()
-  loss.backward()
-  optimizer.step()
+    def forward(self, X):
+        logits = X.matmul(self.W1).relu().matmul(self.W2)
+        return logits
+
+model = DenseNeuralNetwork(input_dim, hidden_dim, output_dim)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam([model.W1, model.W2], lr=lr)
+
+for epoch in range(epochs + 1):
+    optimizer.zero_grad()
+    xb, yb = get_batch()
+    logits = model.forward(xb)
+    loss = criterion(logits, yb)
+    loss.backward()
+    optimizer.step()
+
+    # log the results on each epoch...
 ```
 
 In this example, we define a simple feedforward neural network, compile it, and train it on random data. gradipy will provide building blocks like `Linear` layers, `activation` functions, `loss` functions, and `optimizers` for creating and training neural networks.
@@ -53,20 +59,21 @@ Here's a list of features we plan to implement in gradipy, along with their curr
 
 ### To-Do
 
-- [ ] Backward passes for: `mul`, `sub`, `log`, `tanh`
+- [ ] Backward passes for: `mul` (problem with broadcasting), `tanh`
+- [ ] Adam more init methods (e.g, Xavier)
 - [ ] Add more operations and their gradients
 - [ ] PyTorch's `nn.Module`
-- [ ] Loss functions (`nn.MSELoss` and `nn.NLLLoss`)
-- [ ] Basic optimizer support (SGD, Adam)
+- [ ] More Loss functions (`nn.MSELoss` and `nn.NLLLoss`)
 - [ ] Convolutional layers for image processing
 - [ ] Recurrent layers for sequence data
-- [ ] GPU acceleration
+- [ ] GPU acceleration (no idea how to do that)
 
 ### Done
 
 - [x] Basic Tensor wrapper around NumPy `ndarray`
-- [x] Forward and backward passes implemented for: `add`, `matmul`, `softmax`, `relu`
+- [x] Forward and backward passes implemented for: `add`, `matmul`, `softmax`, `relu`, `sub`, `log`, `exp`, `log softmax`, `cross entropy` 
 - [x] Autograd just like PyTorch's `backward` method using topological sort
-- [x] Cross Entropy Loss function 
+- [x] nn.CrossEntropyLoss function 
 - [x] Train MNIST with `gradipy`
 - [x] Kaiming init
+- [ ] Implemented Adam and added momentum to SGD
