@@ -53,6 +53,28 @@ for epoch in range(epochs + 1):
 
 In this example, we define a simple feedforward neural network, compile it, and train it on random data. gradipy will provide building blocks like `Linear` layers, `activation` functions, `loss` functions, and `optimizers` for creating and training neural networks.
 
+## Installation
+You can install gradipy using `pip`. It is recommended to create a virtual environment before installing the library.
+```bash
+# Create and activate a virtual environment (optional but recommended)
+# Replace 'myenv' with your desired environment name
+python -m venv myenv
+source myenv/bin/activate  # On Windows, use 'myenv\Scripts\activate'
+
+# Install gradipy using pip
+pip install gradipy
+```
+
+## Testing
+To run the tests for gradipy, ensure you have pytest and PyTorch installed. If you haven't installed them yet, you can do so using pip:
+```bash
+pip install -r requirements.txt
+```
+After installing the necessary dependencies, you can run the tests using pytest. During testing, we compare the output results and gradients of various operations with their counterparts in PyTorch to ensure the correctness and compatibility of gradipy.
+```bash
+python -m pytest
+```
+
 ## Feature Roadmap
 
 Here's a list of features we plan to implement in gradipy, along with their current status:
