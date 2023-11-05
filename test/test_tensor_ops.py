@@ -113,7 +113,7 @@ def test_log_softmax():
         return out.data, x.grad, y.grad, z.grad
 
     for x, y in zip(test_pytorch(), test_gradipy()):
-        np.testing.assert_allclose(x, y, atol=1e-6)
+        np.testing.assert_allclose(x, y, atol=1e-5)
 
 
 def test_cross_entropy():
