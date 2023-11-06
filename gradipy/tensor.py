@@ -151,7 +151,7 @@ class Tensor:
         topo = []
         visited = set()
 
-        def build_topo(v):
+        def build_topo(v: "Tensor") -> None:
             if v not in visited:
                 visited.add(v)
                 for child in v._prev:
