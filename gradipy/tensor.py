@@ -97,6 +97,8 @@ class Tensor:
     def matmul(self, other: "Tensor") -> "Tensor":
         return self @ other
 
+    # there is more stable way to compute softmax :D
+    # https://ogunlao.github.io/2020/04/26/you_dont_really_know_softmax.html
     def softmax(self) -> "Tensor":
         exps = np.exp(self.data - np.max(self.data, axis=1, keepdims=True))
         probs = exps / np.sum(exps, axis=1, keepdims=True)
