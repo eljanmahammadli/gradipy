@@ -1,11 +1,9 @@
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
-notebooks/mnist_data/
 *.gz
 .DS_Store
-notebooks/compare-with-pytorch.ipynb
-notebooks/GPU.ipynb
+*.ipynb
 archive/
 dist/
 build/
