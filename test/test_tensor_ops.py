@@ -162,3 +162,33 @@ def test_cross_entropy_loss():
 
     for x, y in zip(test_pytorch(), test_gradipy()):
         np.testing.assert_allclose(x, y, atol=1e-6)
+
+
+def test_conv2d():
+    # convnet settings
+    input_size = 128
+    channel = 4
+    kernel_size = 4
+    kernel_output = 12
+    batch_size = 64
+    stride = 3
+    padding = 2
+    ii = np.random.randn(batch_size, channel, input_size, input_size).astype(np.float32)
+    wi = np.random.randn(kernel_output, channel, kernel_size, kernel_size).astype(
+        np.float32
+    )
+
+    def test_pytorch():
+        i = torch.from_numpy(ii)
+        w = torch.from_numpy(wi)
+        o = F.conv2d(i, w, padding=padding, stride=stride)
+        return o.numpy()
+
+    def test_gradipy():
+        i = Tensor(ii)
+        w = Tensor(wi)
+        o = i.conv2d(w, padding=padding, stride=stride)
+        return o.data
+
+    for x, y in zip(test_pytorch(), test_gradipy()):
+        np.testing.assert_allclose(x, y, atol=1e-4)

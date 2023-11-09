@@ -149,6 +149,49 @@ class Tensor:
         out._backward = _backward
         return out
 
+    def conv2d(
+        self, weight: "Tensor", bias=None, stride: int = 1, padding: int = 0
+    ) -> "Tensor":
+        batch_size = self.data.shape[0]
+        input_size = self.data.shape[-1]
+        inputs_channel = self.data.shape[1]
+        kernel_size = weight.data.shape[-1]
+        if padding > 0:
+            pad_width = ((0, 0), (0, 0), (padding, padding), (padding, padding))
+            input_padded = np.pad(
+                self.data, pad_width, mode="constant", constant_values=0
+            )
+        else:
+            input_padded = self.data
+        batch_stride, channel_stride, rows_stride, columns_stride = input_padded.strides
+        out_size = int((input_size - kernel_size + 2 * padding) / stride)
+        new_shape = (
+            batch_size,
+            inputs_channel,
+            out_size + 1,
+            out_size + 1,
+            kernel_size,
+            kernel_size,
+        )
+        new_strides = (
+            batch_stride,
+            channel_stride,
+            stride * rows_stride,
+            stride * columns_stride,
+            rows_stride,
+            columns_stride,
+        )
+        input_windows = np.lib.stride_tricks.as_strided(
+            input_padded, new_shape, new_strides
+        )
+        out = Tensor(np.einsum("bchwkt,fckt->bfhw", input_windows, weight.data))
+
+        def _backward() -> None:
+            pass
+
+        out._backward = _backward
+        return out
+
     def backward(self) -> None:
         topo = []
         visited = set()

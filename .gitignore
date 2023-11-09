@@ -5,6 +5,7 @@ notebooks/mnist_data/
 *.gz
 .DS_Store
 notebooks/compare-with-pytorch.ipynb
+notebooks/GPU.ipynb
 archive/
 dist/
 build/
