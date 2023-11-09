@@ -4,7 +4,7 @@ from gradipy.tensor import Tensor
 from .init import init_kaiming_normal
 
 
-class Module:
+class Module(ABC):
     def __init__(self) -> None:
         self.parameters = []
 
