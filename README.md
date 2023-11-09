@@ -74,26 +74,14 @@ python -m pytest
 ```
 
 ## Feature Roadmap
-
 Here's a list of features we plan to implement in gradipy, along with their current status:
 
 ### To-Do
-
-- [ ] Backward passes for: `mul` (problem with broadcasting), `tanh`
-- [ ] Add more operations and their gradients
+- [ ] Conv2d backward pass
 - [ ] Batchnorm
+- [ ] Add more operations and their gradients
+- [ ] Backward passes for: `mul` (problem with broadcasting), `tanh`
 - [ ] Convolutional layers for image processing
-- [ ] PyTorch's `nn.Module`
 - [ ] More Loss functions (`nn.MSELoss` and `nn.NLLLoss`)
 - [ ] Recurrent layers for sequence data
 - [ ] GPU acceleration (no idea how to do that)
-
-### Done
-
-- [x] Basic Tensor wrapper around NumPy `ndarray`
-- [x] Forward and backward passes implemented for: `add`, `matmul`, `softmax`, `relu`, `sub`, `log`, `exp`, `log softmax`, `cross entropy` 
-- [x] Autograd just like PyTorch's `backward` method using topological sort
-- [x] nn.CrossEntropyLoss function 
-- [x] Train MNIST with `gradipy`
-- [x] Kaiming, Xavier init (normal + uniform)
-- [x] Implemented Adam and added momentum to SGD
