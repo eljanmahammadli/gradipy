@@ -165,7 +165,7 @@ class Tensor:
             input_padded = self.data
         batch_stride, channel_stride, rows_stride, columns_stride = input_padded.strides
         out_size = int((input_size - kernel_size + 2 * padding) / stride)
-        new_shape = (
+        view_shape = (
             batch_size,
             inputs_channel,
             out_size + 1,
@@ -173,7 +173,7 @@ class Tensor:
             kernel_size,
             kernel_size,
         )
-        new_strides = (
+        view_strides = (
             batch_stride,
             channel_stride,
             stride * rows_stride,
@@ -182,9 +182,40 @@ class Tensor:
             columns_stride,
         )
         input_windows = np.lib.stride_tricks.as_strided(
-            input_padded, new_shape, new_strides
+            input_padded, view_shape, view_strides
         )
         out = Tensor(np.einsum("bchwkt,fckt->bfhw", input_windows, weight.data))
+
+        def _backward() -> None:
+            pass
+
+        out._backward = _backward
+        return out
+
+    def max_pool2d(self, kernel_size: int = None, stride: int = None) -> "Tensor":
+        # TODO: handle when stride and kernel_size is different
+        # TODO: add pooling
+        out_size = self.data.shape[-1] // stride
+        view_shape = (
+            self.data.shape[0],
+            self.data.shape[1],
+            out_size,
+            out_size,
+            kernel_size,
+            kernel_size,
+        )
+        view_strides = (
+            self.data.strides[0],
+            self.data.strides[1],
+            stride * self.data.strides[2],
+            stride * self.data.strides[3],
+            self.data.strides[2],
+            self.data.strides[3],
+        )
+        input_view = np.lib.stride_tricks.as_strided(
+            self.data, shape=view_shape, strides=view_strides
+        )
+        out = Tensor(np.max(input_view, axis=(4, 5)))
 
         def _backward() -> None:
             pass
