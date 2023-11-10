@@ -2,7 +2,7 @@
 # gradipy: A Lightweight Neural Network Library
 ![Tests](https://github.com/eljanmahammadli/gradipy/actions/workflows/ci.yml/badge.svg)
 
-gradipy is an evolving project, and it will potentially provide PyTorch-like API for building and training neural networks, there are some features that are actively developed on and plan to support in future releases. My inspiration for this project stems from ![micrograd](https://github.com/karpathy/micrograd/tree/master) and ![tinygrad](https://github.com/tinygrad/tinygrad). While the former focuses solely on scalar values, which makes it quite simple, the latter is a more advanced implementation. The library I am building, tentatively named gradipy, falls somewhere in between these two.
+gradipy is an evolving project, and it will potentially provide PyTorch-like API for building and training neural networks, there are some features that are actively developed on and plan to support in future releases. My inspiration for this project stems from [micrograd](https://github.com/karpathy/micrograd/tree/master) and [tinygrad](https://github.com/tinygrad/tinygrad). While the former focuses solely on scalar values, which makes it quite simple, the latter is a more advanced implementation. The library I am building, tentatively named gradipy, falls somewhere in between these two.
 
 ## Desired features to add:
 - PyTorch like API for most important blocks for training NNs 
