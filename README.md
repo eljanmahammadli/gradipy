@@ -6,6 +6,8 @@ gradipy is an evolving project, and it will potentially provide PyTorch-like API
 
 While gradipy may not be your top-tier production tool (we'll leave that to the heavyweights), it's more like a trusty sidekick on your learning expedition. Because, let's be honest, understanding the nitty-gritty of neural networks by rolling up your sleeves and implementing from scratch? That's the real superhero origin story. Serious learning, a bit of coding flair, and a sidekick named gradipy—what more could you want?
 
+Additionally, any contributions to gradipy are welcomed. Given the evolving nature of the project, there might be seminar bugs or opportunities to refine design choices. Your input is appreciated in making gradipy even better.
+
 ## Desired features to add:
 - PyTorch like API for most important blocks for training NNs 
 - Convolutional layers for image processing
