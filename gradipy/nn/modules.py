@@ -7,14 +7,18 @@ from .init import init_kaiming_normal
 class Module(ABC):
     def __init__(self) -> None:
         self.parameters = []
+        self.y = None
 
     @abstractmethod
-    def forward() -> Tensor:
+    def forward(self) -> Tensor:
         pass
 
-    @abstractmethod
-    def backward() -> Tensor:
-        pass
+    def backward(self) -> Tensor:
+        self.y.backward()
+
+    @property
+    def name(self) -> str:
+        return self.__class__.__name__
 
     def __call__(self, *args) -> Tensor:
         return self.forward(*args)
@@ -32,9 +36,6 @@ class Linear(Module):
     def forward(self, x: Tensor) -> Tensor:
         self.y = x.matmul(self.weight)
         return self.y
-
-    def backward(self) -> Tensor:
-        self.y.backward()
 
 
 class Conv2d(Module):
@@ -57,11 +58,7 @@ class Conv2d(Module):
             np.random.randn(out_channels, in_channels, kernel_size, kernel_size)
         )
         self.parameters = [self.weight]
-        self.y = None
 
     def forward(self, x: Tensor) -> Tensor:
         self.y = x.conv2d(self.weight, None, self.stride, self.padding)
         return self.y
-
-    def backward(self) -> Tensor:
-        self.y.backward()
