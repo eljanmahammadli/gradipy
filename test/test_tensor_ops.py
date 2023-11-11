@@ -174,9 +174,7 @@ def test_conv2d():
     stride = 3
     padding = 2
     ii = np.random.randn(batch_size, channel, input_size, input_size).astype(np.float32)
-    wi = np.random.randn(kernel_output, channel, kernel_size, kernel_size).astype(
-        np.float32
-    )
+    wi = np.random.randn(kernel_output, channel, kernel_size, kernel_size).astype(np.float32)
 
     def test_pytorch():
         i = torch.from_numpy(ii)

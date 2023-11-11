@@ -136,10 +136,7 @@ class Tensor:
         return out
 
     def conv2d(self, weight: "Tensor", bias=None, stride: int = 1, padding: int = 0) -> "Tensor":
-        bs = self.data.shape[0]
-        inpsz = self.data.shape[-1]
-        inchn = self.data.shape[1]
-        ksz = weight.data.shape[-1]
+        bs, inpsz, inchn, ksz = self.shape[0], self.shape[-1], self.shape[1], weight.shape[-1]
         if padding > 0:
             pad_width = ((0, 0), (0, 0), (padding, padding), (padding, padding))
             inp = np.pad(self.data, pad_width, mode="constant", constant_values=0)
@@ -149,8 +146,8 @@ class Tensor:
         outsz = int((inpsz - ksz + 2 * padding) / stride)
         vshp = (bs, inchn, outsz + 1, outsz + 1, ksz, ksz)
         vstrd = (bstrd, chstrd, stride * rstrd, stride * cstrd, rstrd, cstrd)
-        inp_windows = np.lib.stride_tricks.as_strided(inp, vshp, vstrd)
-        out = Tensor(np.einsum("bchwkt,fckt->bfhw", inp_windows, weight.data))
+        inp_view = np.lib.stride_tricks.as_strided(inp, vshp, vstrd)
+        out = Tensor(np.einsum("bchwkt,fckt->bfhw", inp_view, weight.data), _children=(self, weight))
 
         def _backward() -> None:
             pass
@@ -161,25 +158,11 @@ class Tensor:
     def max_pool2d(self, kernel_size: int = None, stride: int = None) -> "Tensor":
         # TODO: handle when stride and kernel_size is different
         # TODO: add pooling
-        out_size = self.data.shape[-1] // stride
-        view_shape = (
-            self.data.shape[0],
-            self.data.shape[1],
-            out_size,
-            out_size,
-            kernel_size,
-            kernel_size,
-        )
-        view_strides = (
-            self.data.strides[0],
-            self.data.strides[1],
-            stride * self.data.strides[2],
-            stride * self.data.strides[3],
-            self.data.strides[2],
-            self.data.strides[3],
-        )
-        input_view = np.lib.stride_tricks.as_strided(self.data, shape=view_shape, strides=view_strides)
-        out = Tensor(np.max(input_view, axis=(4, 5)))
+        outsz, strds = self.shape[-1] // stride, self.strides
+        vshp = (self.shape[0], self.shape[1], outsz, outsz, kernel_size, kernel_size)
+        vstrd = (strds[0], strds[1], stride * strds[2], stride * strds[3], strds[2], strds[3])
+        inp_view = np.lib.stride_tricks.as_strided(self.data, shape=vshp, strides=vstrd)
+        out = Tensor(np.max(inp_view, axis=(4, 5)))
 
         def _backward() -> None:
             pass
