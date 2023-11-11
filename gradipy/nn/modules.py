@@ -54,9 +54,7 @@ class Conv2d(Module):
         self.stride = stride
         self.padding = padding
         # TODO: implement better init for conv2d. Is kaiming normal good enough?
-        self.weight = Tensor(
-            np.random.randn(out_channels, in_channels, kernel_size, kernel_size)
-        )
+        self.weight = Tensor(np.random.randn(out_channels, in_channels, kernel_size, kernel_size))
         self.parameters = [self.weight]
 
     def forward(self, x: Tensor) -> Tensor:

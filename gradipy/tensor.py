@@ -3,12 +3,8 @@ import numpy as np
 
 
 class Tensor:
-    def __init__(
-        self, data: Union[list, np.ndarray], _children: Tuple["Tensor"] = ()
-    ) -> None:
-        self.data = (
-            data if isinstance(data, np.ndarray) else np.array(data, dtype=np.float32)
-        )
+    def __init__(self, data: Union[list, np.ndarray], _children: Tuple["Tensor"] = ()) -> None:
+        self.data = data if isinstance(data, np.ndarray) else np.array(data, dtype=np.float32)
         # TODO: implement requires_grad parameter
         self.grad = np.zeros_like(self.data, dtype=np.float32)
         self._backward = lambda: None
@@ -27,16 +23,8 @@ class Tensor:
     # https://stackoverflow.com/questions/45428696
     def _broadcast(self, other: "Tensor") -> tuple:
         bx, by = np.broadcast_arrays(self.data, other.data)
-        ax = tuple(
-            i
-            for i, (dx, dy) in enumerate(zip(bx.strides, by.strides))
-            if dx == 0 and dy != 0
-        )
-        ay = tuple(
-            i
-            for i, (dx, dy) in enumerate(zip(bx.strides, by.strides))
-            if dx != 0 and dy == 0
-        )
+        ax = tuple(i for i, (dx, dy) in enumerate(zip(bx.strides, by.strides)) if dx == 0 and dy != 0)
+        ay = tuple(i for i, (dx, dy) in enumerate(zip(bx.strides, by.strides)) if dx != 0 and dy == 0)
         return ax, ay
 
     def __add__(self, other: "Tensor") -> "Tensor":
@@ -119,9 +107,7 @@ class Tensor:
 
         def _backward() -> None:
             # TODO: implement scalable backward pass
-            self.grad += out.grad - np.exp(out.data) * out.grad.sum(axis=1).reshape(
-                -1, 1
-            )
+            self.grad += out.grad - np.exp(out.data) * out.grad.sum(axis=1).reshape(-1, 1)
 
         out._backward = _backward
         return out
@@ -149,18 +135,14 @@ class Tensor:
         out._backward = _backward
         return out
 
-    def conv2d(
-        self, weight: "Tensor", bias=None, stride: int = 1, padding: int = 0
-    ) -> "Tensor":
+    def conv2d(self, weight: "Tensor", bias=None, stride: int = 1, padding: int = 0) -> "Tensor":
         batch_size = self.data.shape[0]
         input_size = self.data.shape[-1]
         inputs_channel = self.data.shape[1]
         kernel_size = weight.data.shape[-1]
         if padding > 0:
             pad_width = ((0, 0), (0, 0), (padding, padding), (padding, padding))
-            input_padded = np.pad(
-                self.data, pad_width, mode="constant", constant_values=0
-            )
+            input_padded = np.pad(self.data, pad_width, mode="constant", constant_values=0)
         else:
             input_padded = self.data
         batch_stride, channel_stride, rows_stride, columns_stride = input_padded.strides
@@ -181,9 +163,7 @@ class Tensor:
             rows_stride,
             columns_stride,
         )
-        input_windows = np.lib.stride_tricks.as_strided(
-            input_padded, view_shape, view_strides
-        )
+        input_windows = np.lib.stride_tricks.as_strided(input_padded, view_shape, view_strides)
         out = Tensor(np.einsum("bchwkt,fckt->bfhw", input_windows, weight.data))
 
         def _backward() -> None:
@@ -212,9 +192,7 @@ class Tensor:
             self.data.strides[2],
             self.data.strides[3],
         )
-        input_view = np.lib.stride_tricks.as_strided(
-            self.data, shape=view_shape, strides=view_strides
-        )
+        input_view = np.lib.stride_tricks.as_strided(self.data, shape=view_shape, strides=view_strides)
         out = Tensor(np.max(input_view, axis=(4, 5)))
 
         def _backward() -> None:

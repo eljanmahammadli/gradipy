@@ -12,10 +12,8 @@ def MNIST(path="./data/mnist_data"):
         "t10k-images-idx3-ubyte.gz",
         "t10k-labels-idx1-ubyte.gz",
     ]
-
     if not os.path.exists(path):
         os.makedirs(path)
-
     for file in files:
         if not os.path.exists(os.path.join(path, file)):
             urllib.request.urlretrieve(base_url + file, os.path.join(path, file))
@@ -25,17 +23,9 @@ def MNIST(path="./data/mnist_data"):
             data = np.frombuffer(f.read(), np.uint8, offset=offset)
         return data
 
-    X = (
-        load_image(f"{path}/train-images-idx3-ubyte.gz", 16)
-        .reshape(-1, 28 * 28)
-        .astype(np.float32)
-    )
+    X = load_image(f"{path}/train-images-idx3-ubyte.gz", 16).reshape(-1, 28 * 28).astype(np.float32)
     y = load_image(f"{path}/train-labels-idx1-ubyte.gz", 8).astype(np.int32)
-    X_test = (
-        load_image(f"{path}/t10k-images-idx3-ubyte.gz", 16)
-        .reshape(-1, 28 * 28)
-        .astype(np.float32)
-    )
+    X_test = load_image(f"{path}/t10k-images-idx3-ubyte.gz", 16).reshape(-1, 28 * 28).astype(np.float32)
     y_test = load_image(f"{path}/t10k-labels-idx1-ubyte.gz", 8).astype(np.int32)
 
     # 50,000 train, 10,000 dev and 10,000 test set
