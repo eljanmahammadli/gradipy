@@ -136,15 +136,12 @@ class Tensor:
         return out
 
     def conv2d(self, weight: "Tensor", bias=None, stride: int = 1, padding: int = 0) -> "Tensor":
-        bs, inpsz, inchn, ksz = self.shape[0], self.shape[-1], self.shape[1], weight.shape[-1]
-        if padding > 0:
-            pad_width = ((0, 0), (0, 0), (padding, padding), (padding, padding))
-            inp = np.pad(self.data, pad_width, mode="constant", constant_values=0)
-        else:
-            inp = self.data
+        bsz, inpsz, inchn, ksz = self.shape[0], self.shape[-1], self.shape[1], weight.shape[-1]
+        pad_width = ((0, 0), (0, 0), (padding, padding), (padding, padding))
+        inp = np.pad(self.data, pad_width, mode="constant", constant_values=0)
         bstrd, chstrd, rstrd, cstrd = inp.strides
         outsz = int((inpsz - ksz + 2 * padding) / stride)
-        vshp = (bs, inchn, outsz + 1, outsz + 1, ksz, ksz)
+        vshp = (bsz, inchn, outsz + 1, outsz + 1, ksz, ksz)
         vstrd = (bstrd, chstrd, stride * rstrd, stride * cstrd, rstrd, cstrd)
         inp_view = np.lib.stride_tricks.as_strided(inp, vshp, vstrd)
         out = Tensor(np.einsum("bchwkt,fckt->bfhw", inp_view, weight.data), _children=(self, weight))
@@ -155,14 +152,23 @@ class Tensor:
         out._backward = _backward
         return out
 
-    def max_pool2d(self, kernel_size: int = None, stride: int = None) -> "Tensor":
-        # TODO: handle when stride and kernel_size is different
-        # TODO: add pooling
-        outsz, strds = self.shape[-1] // stride, self.strides
-        vshp = (self.shape[0], self.shape[1], outsz, outsz, kernel_size, kernel_size)
-        vstrd = (strds[0], strds[1], stride * strds[2], stride * strds[3], strds[2], strds[3])
-        inp_view = np.lib.stride_tricks.as_strided(self.data, shape=vshp, strides=vstrd)
-        out = Tensor(np.max(inp_view, axis=(4, 5)))
+    def max_pool2d(self, kernel_size: int = None, stride: int = 1, padding: int = 0) -> "Tensor":
+        if padding > kernel_size // 2:
+            raise ValueError(
+                f"padding should be at most half of kernel size, but got pad={padding} and kernel_size={kernel_size}"
+            )
+        bsz, inpsz, inchn = self.shape[0], self.shape[-1], self.shape[1]
+        pad_width = ((0, 0), (0, 0), (padding, padding), (padding, padding))
+        inp = np.pad(self.data, pad_width, mode="constant", constant_values=np.nan)
+        outshp = int(((inpsz - kernel_size + 2 * padding) // stride) + 1)
+        pooled = np.zeros((bsz, inchn, outshp, outshp))
+
+        for w in range(outshp):
+            for h in range(outshp):
+                start_w, start_h = w * stride, h * stride
+                slice = inp[:, :, start_w : start_w + kernel_size, start_h : start_h + kernel_size]
+                pooled[:, :, w, h] = np.nanmax(slice, axis=(2, 3))
+        out = Tensor(pooled.astype(np.float32), _children=(self,))
 
         def _backward() -> None:
             pass

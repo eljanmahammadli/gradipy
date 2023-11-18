@@ -6,6 +6,10 @@ from gradipy.tensor import Tensor
 import gradipy.nn as nn
 
 
+# TODO: this file needs some refactring. Better to split the test cases into multiple files.
+# also create global variables for test data
+
+
 def test_matmul():
     # create data
     m, n, h = 15, 20, 30
@@ -190,3 +194,27 @@ def test_conv2d():
 
     for x, y in zip(test_pytorch(), test_gradipy()):
         np.testing.assert_allclose(x, y, atol=1e-4)
+
+
+def test_conv2d():
+    # convnet settings
+    input_size = 128
+    channel = 4
+    kernel_size = 4
+    batch_size = 64
+    stride = 3
+    padding = 2
+    ii = np.random.randn(batch_size, channel, input_size, input_size).astype(np.float32)
+
+    def test_pytorch():
+        i = torch.from_numpy(ii)
+        o = F.max_pool2d(i, kernel_size=kernel_size, padding=padding, stride=stride)
+        return o.numpy()
+
+    def test_gradipy():
+        i = Tensor(ii)
+        o = i.max_pool2d(kernel_size=kernel_size, padding=padding, stride=stride)
+        return o.data
+
+    for x, y in zip(test_pytorch(), test_gradipy()):
+        np.testing.assert_allclose(x, y)
