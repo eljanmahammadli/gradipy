@@ -6,4 +6,4 @@ from .init import (
     init_xavier_uniform,
 )
 from . import optim
-from .modules import Linear, Conv2d
+from .modules import Linear, Conv2d, BatchNorm1d
