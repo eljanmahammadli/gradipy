@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from gradipy.tensor import Tensor
 from .init import init_kaiming_normal
+from gradipy.nn import functional as F
 
 
 class Module(ABC):
@@ -67,7 +68,7 @@ class Conv2d(Module):
         self.weight = Tensor(np.random.randn(out_channels, in_channels, kernel_size, kernel_size))
 
     def forward(self, x: Tensor) -> Tensor:
-        return x.conv2d(self.weight, self.stride, self.padding) + Tensor(
+        return F.conv2d(x, self.weight, self.stride, self.padding) + Tensor(
             self.bias.data[np.newaxis, :, np.newaxis]
         )
 
@@ -111,7 +112,21 @@ class MaxPool2d(Module):
         self.padding = padding
 
     def forward(self, x: Tensor) -> Tensor:
-        return x.max_pool2d(self.kernel_size, self.stride, self.padding)
+        return F.max_pool2d(x, self.kernel_size, self.stride, self.padding)
+
+    def parameters(self) -> list:
+        return []
+
+
+class AvgPool2d(Module):
+    def __init__(self, kernel_size: int = None, stride: int = 1, padding: int = 0) -> None:
+        super().__init__()
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.padding = padding
+
+    def forward(self, x: Tensor) -> Tensor:
+        return F.avg_pool2d(x, self.kernel_size, self.stride, self.padding)
 
     def parameters(self) -> list:
         return []
@@ -123,7 +138,7 @@ class AdaptiveAvgPool2d(Module):
         self.output_size = output_size
 
     def forward(self, x: Tensor) -> Tensor:
-        return x.adaptive_avg_pool2d(self.output_size)
+        return F.adaptive_avg_pool2d(x, self.output_size)
 
     def parameters(self) -> list:
         return []

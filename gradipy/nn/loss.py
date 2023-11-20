@@ -1,4 +1,5 @@
 from gradipy.tensor import Tensor
+from gradipy.nn import functional as F
 
 
 class CrossEntropyLoss:
@@ -6,7 +7,7 @@ class CrossEntropyLoss:
         self.out = None
 
     def __call__(self, logits: Tensor, target: Tensor) -> Tensor:
-        self.out = logits.cross_entropy(target)
+        self.out = F.cross_entropy(logits, target)
         return self.out
 
     def __repr__(self) -> str:
