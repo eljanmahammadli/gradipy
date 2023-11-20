@@ -28,17 +28,19 @@ class Module(ABC):
 
 
 class Linear(Module):
-    def __init__(self, in_features: int, out_features: int, bias: bool = False) -> None:
+    def __init__(self, in_features: int, out_features: int, bias: bool = True) -> None:
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.bias = bias
         # TODO: this is fixed for relu, condider to use pytorch's init
         self.weight = init_kaiming_normal(in_features, out_features)
+        if bias is True:
+            self.bias = np.zeros(out_features, dtype=np.float32)
 
     def forward(self, x: Tensor) -> Tensor:
         # TODO: implement bias
-        return x.matmul(self.weight)
+        return x.matmul(self.weight) + self.bias
 
     def parameters(self) -> list:
         return [self.weight] + ([] if self.bias is False else [self.bias])
@@ -52,7 +54,7 @@ class Conv2d(Module):
         kernel_size: int,
         stride: int = 1,
         padding: int = 0,
-        bias: bool = False,
+        bias: bool = True,
     ) -> None:
         super().__init__()
         self.in_channels = in_channels
@@ -60,13 +62,13 @@ class Conv2d(Module):
         self.kernel_size = kernel_size
         self.stride = stride
         self.padding = padding
-        self.bias = bias
+        if self.bias is True:
+            self.bias = Tensor(np.zeros((out_channels, 1), dtype=np.float32))
         # TODO: implement better init for conv2d. Is kaiming normal good enough?
-        # TODO: implement bias
         self.weight = Tensor(np.random.randn(out_channels, in_channels, kernel_size, kernel_size))
 
     def forward(self, x: Tensor) -> Tensor:
-        return x.conv2d(self.weight, None, self.stride, self.padding)
+        return x.conv2d(self.weight, self.bias, self.stride, self.padding)
 
     def parameters(self) -> list:
         return [self.weight] + ([] if self.bias is False else [self.bias])

@@ -55,6 +55,23 @@ def test_addition():
     np.testing.assert_allclose(bggp, bgpt)
 
 
+def test_relu():
+    ii = np.random.randn(32, 3, 128, 128).astype(np.float32)
+
+    def test_pytorch():
+        i = torch.from_numpy(ii)
+        o = F.relu(i)
+        return o.numpy()
+
+    def test_gradipy():
+        i = Tensor(ii)
+        o = i.relu()
+        return o.data
+
+    for x, y in zip(test_pytorch(), test_gradipy()):
+        np.testing.assert_allclose(x, y)
+
+
 def test_matmul_relu():
     # create data
     m, n, h = 15, 20, 30
@@ -196,8 +213,7 @@ def test_conv2d():
         np.testing.assert_allclose(x, y, atol=1e-4)
 
 
-def test_conv2d():
-    # convnet settings
+def test_maxpool2d():
     input_size = 128
     channel = 4
     kernel_size = 4
@@ -250,6 +266,29 @@ def test_BatchNorm1d():
             # bn.running_var
             # variance calculation is different from pytorch for some reason.
         )
+
+    for x, y in zip(test_pytorch(), test_gradipy()):
+        np.testing.assert_allclose(x, y, atol=1e-5)
+
+
+def test_avgpool2d():
+    input_size = 128
+    channel = 4
+    kernel_size = 4
+    batch_size = 64
+    stride = 1
+    padding = 2
+    ii = np.random.randn(batch_size, channel, input_size, input_size).astype(np.float32)
+
+    def test_pytorch():
+        i = torch.from_numpy(ii)
+        o = F.avg_pool2d(i, kernel_size=kernel_size, padding=padding, stride=stride)
+        return o.numpy()
+
+    def test_gradipy():
+        i = Tensor(ii)
+        o = i.avg_pool2d(kernel_size=kernel_size, padding=padding, stride=stride)
+        return o.data
 
     for x, y in zip(test_pytorch(), test_gradipy()):
         np.testing.assert_allclose(x, y, atol=1e-5)

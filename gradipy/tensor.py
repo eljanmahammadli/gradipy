@@ -135,7 +135,7 @@ class Tensor:
         out._backward = _backward
         return out
 
-    def conv2d(self, weight: "Tensor", bias=None, stride: int = 1, padding: int = 0) -> "Tensor":
+    def conv2d(self, weight: "Tensor", bias=False, stride: int = 1, padding: int = 0) -> "Tensor":
         bsz, inpsz, inchn, ksz = self.shape[0], self.shape[-1], self.shape[1], weight.shape[-1]
         pad_width = ((0, 0), (0, 0), (padding, padding), (padding, padding))
         inp = np.pad(self.data, pad_width, mode="constant", constant_values=0)
@@ -144,7 +144,13 @@ class Tensor:
         vshp = (bsz, inchn, outsz + 1, outsz + 1, ksz, ksz)
         vstrd = (bstrd, chstrd, stride * rstrd, stride * cstrd, rstrd, cstrd)
         inp_view = np.lib.stride_tricks.as_strided(inp, vshp, vstrd)
-        out = Tensor(np.einsum("bchwkt,fckt->bfhw", inp_view, weight.data), _children=(self, weight))
+        if bias is True:
+            out = Tensor(
+                np.einsum("bchwkt,fckt->bfhw", inp_view, weight.data) + bias[np.newaxis, :, np.newaxis],
+                _children=(self, weight),
+            )
+        else:
+            out = Tensor(np.einsum("bchwkt,fckt->bfhw", inp_view, weight.data), _children=(self, weight))
 
         def _backward() -> None:
             pass
@@ -169,6 +175,70 @@ class Tensor:
                 slice = inp[:, :, start_w : start_w + kernel_size, start_h : start_h + kernel_size]
                 pooled[:, :, w, h] = np.nanmax(slice, axis=(2, 3))
         out = Tensor(pooled.astype(np.float32), _children=(self,))
+
+        def _backward() -> None:
+            pass
+
+        out._backward = _backward
+        return out
+
+    def avg_pool2d(self, kernel_size: int = None, stride: int = 1, padding: int = 0) -> "Tensor":
+        if padding > kernel_size // 2:
+            raise ValueError(
+                f"padding should be at most half of kernel size, but got pad={padding} and kernel_size={kernel_size}"
+            )
+        bsz, inpsz, inchn = self.shape[0], self.shape[-1], self.shape[1]
+        pad_width = ((0, 0), (0, 0), (padding, padding), (padding, padding))
+        inp = np.pad(self.data, pad_width, mode="constant", constant_values=0)
+        outshp = int(((inpsz - kernel_size + 2 * padding) // stride) + 1)
+        pooled = np.zeros((bsz, inchn, outshp, outshp))
+
+        for w in range(outshp):
+            for h in range(outshp):
+                start_w, start_h = w * stride, h * stride
+                slice = inp[:, :, start_w : start_w + kernel_size, start_h : start_h + kernel_size]
+                pooled[:, :, w, h] = np.mean(slice, axis=(2, 3))
+        out = Tensor(pooled.astype(np.float32), _children=(self,))
+
+        def _backward() -> None:
+            pass
+
+        out._backward = _backward
+        return out
+
+    def adaptive_avg_pool2d(self, output_size: int) -> "Tensor":
+        # TODO: getting atol=1e-3 with pytorch.
+        bsz, inpsz, inchn = self.shape[0], self.shape[-1], self.shape[1]
+        stride = inpsz // output_size
+        kernel_size = inpsz - (output_size - 1) * stride
+        padding = 0
+        pad_width = ((0, 0), (0, 0), (padding, padding), (padding, padding))
+        inp = np.pad(self.data, pad_width, mode="constant", constant_values=0)
+        outshp = int(((inpsz - kernel_size + 2 * padding) // stride) + 1)
+        pooled = np.zeros((bsz, inchn, outshp, outshp))
+
+        for w in range(outshp):
+            for h in range(outshp):
+                start_w, start_h = w * stride, h * stride
+                slice = inp[:, :, start_w : start_w + kernel_size, start_h : start_h + kernel_size]
+                pooled[:, :, w, h] = np.mean(slice, axis=(2, 3))
+        out = Tensor(pooled.astype(np.float32), _children=(self,))
+
+        def _backward() -> None:
+            pass
+
+        out._backward = _backward
+        return out
+
+    def dropout(self, p: float = 0.5) -> "Tensor":
+        # Save dropout mask for backward pass
+        self.dropout_mask = (np.random.rand(*self.shape) > p) / (1 - p)
+
+        # Apply dropout during forward pass
+        out_data = self.data * self.dropout_mask
+
+        # Create a new Tensor with the dropout-applied data
+        out = Tensor(out_data.astype(np.float32), _children=(self,))
 
         def _backward() -> None:
             pass
