@@ -1000,4 +1000,4 @@ IMAGENET_CATEGORIES = [
     "ear",
     "toilet tissue",
 ]
-IMAGENET_CATEGORIES = {i + 1: v for i, v in enumerate(IMAGENET_CATEGORIES)}
+IMAGENET_CATEGORIES = {i: v for i, v in enumerate(IMAGENET_CATEGORIES)}
