@@ -1,17 +1,13 @@
-import os
-import requests
-import argparse
+import os, requests, argparse
+from typing import Sequence
 from PIL import Image
-import requests
 from io import BytesIO
 import numpy as np
-import matplotlib.pyplot as plt
 import torch
 from torchvision import models, transforms
 from gradipy.tensor import Tensor
 import gradipy.nn as nn
 from .imagenet import IMAGENET_CATEGORIES
-from typing import Sequence
 
 
 class AlexNet(nn.Module):
@@ -96,8 +92,6 @@ def load_and_preprocess_image(url):
     )
     response = requests.get(url)
     img = Image.open(BytesIO(response.content))
-    # plt.imshow(img)
-    # plt.show()
     img = preprocess(img)
     img = img.unsqueeze(0)  # Add batch dimension
     return img
