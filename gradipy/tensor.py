@@ -20,6 +20,12 @@ class Tensor:
     def reshape(self, *shape: Sequence[int]) -> "Tensor":
         return Tensor(self.data.reshape(*shape))
 
+    def transpose(self, *axes: Sequence[int]) -> "Tensor":
+        return Tensor(self.data.transpose(*axes))
+
+    def flatten(self) -> "Tensor":
+        return self.reshape(1, -1)
+
     # https://stackoverflow.com/questions/45428696
     def _broadcast(self, other: "Tensor") -> tuple:
         bx, by = np.broadcast_arrays(self.data, other.data)
@@ -135,7 +141,7 @@ class Tensor:
         out._backward = _backward
         return out
 
-    def conv2d(self, weight: "Tensor", bias=False, stride: int = 1, padding: int = 0) -> "Tensor":
+    def conv2d(self, weight: "Tensor", stride: int = 1, padding: int = 0) -> "Tensor":
         bsz, inpsz, inchn, ksz = self.shape[0], self.shape[-1], self.shape[1], weight.shape[-1]
         pad_width = ((0, 0), (0, 0), (padding, padding), (padding, padding))
         inp = np.pad(self.data, pad_width, mode="constant", constant_values=0)
@@ -144,13 +150,7 @@ class Tensor:
         vshp = (bsz, inchn, outsz + 1, outsz + 1, ksz, ksz)
         vstrd = (bstrd, chstrd, stride * rstrd, stride * cstrd, rstrd, cstrd)
         inp_view = np.lib.stride_tricks.as_strided(inp, vshp, vstrd)
-        if bias is True:
-            out = Tensor(
-                np.einsum("bchwkt,fckt->bfhw", inp_view, weight.data) + bias[np.newaxis, :, np.newaxis],
-                _children=(self, weight),
-            )
-        else:
-            out = Tensor(np.einsum("bchwkt,fckt->bfhw", inp_view, weight.data), _children=(self, weight))
+        out = Tensor(np.einsum("bchwkt,fckt->bfhw", inp_view, weight.data), _children=(self, weight))
 
         def _backward() -> None:
             pass

@@ -12,7 +12,6 @@ class Module(ABC):
     def forward(self) -> Tensor:
         pass
 
-    @abstractmethod
     def parameters(self) -> list:
         pass
 
@@ -36,7 +35,7 @@ class Linear(Module):
         # TODO: this is fixed for relu, condider to use pytorch's init
         self.weight = init_kaiming_normal(in_features, out_features)
         if bias is True:
-            self.bias = np.zeros(out_features, dtype=np.float32)
+            self.bias = Tensor(np.zeros(out_features, dtype=np.float32))
 
     def forward(self, x: Tensor) -> Tensor:
         # TODO: implement bias
@@ -62,13 +61,15 @@ class Conv2d(Module):
         self.kernel_size = kernel_size
         self.stride = stride
         self.padding = padding
-        if self.bias is True:
+        if bias is True:
             self.bias = Tensor(np.zeros((out_channels, 1), dtype=np.float32))
         # TODO: implement better init for conv2d. Is kaiming normal good enough?
         self.weight = Tensor(np.random.randn(out_channels, in_channels, kernel_size, kernel_size))
 
     def forward(self, x: Tensor) -> Tensor:
-        return x.conv2d(self.weight, self.bias, self.stride, self.padding)
+        return x.conv2d(self.weight, self.stride, self.padding) + Tensor(
+            self.bias.data[np.newaxis, :, np.newaxis]
+        )
 
     def parameters(self) -> list:
         return [self.weight] + ([] if self.bias is False else [self.bias])
@@ -92,11 +93,65 @@ class BatchNorm1d(Module):
         else:
             xmean = self.running_mean
             xvar = self.running_var
+        out = self.weight * ((x.data - xmean) / np.sqrt(xvar + self.eps)) + self.bias
         if self.training:
             self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * xmean
             self.running_var = (1 - self.momentum) * self.running_var + self.momentum * xvar
-        out = self.weight * ((x.data - xmean) / np.sqrt(xvar + self.eps)) + self.bias
         return Tensor(out)  # what is the children of this tensor?
 
     def parameters(self) -> list:
         return [Tensor(self.weight), Tensor(self.bias)]
+
+
+class MaxPool2d(Module):
+    def __init__(self, kernel_size: int, stride: int = 1, padding: int = 0) -> None:
+        super().__init__()
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.padding = padding
+
+    def forward(self, x: Tensor) -> Tensor:
+        return x.max_pool2d(self.kernel_size, self.stride, self.padding)
+
+    def parameters(self) -> list:
+        return []
+
+
+class AdaptiveAvgPool2d(Module):
+    def __init__(self, output_size) -> None:
+        super().__init__()
+        self.output_size = output_size
+
+    def forward(self, x: Tensor) -> Tensor:
+        return x.adaptive_avg_pool2d(self.output_size)
+
+    def parameters(self) -> list:
+        return []
+
+
+class ReLU(Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, x: Tensor) -> Tensor:
+        return x.relu()
+
+    def parameters(self) -> list:
+        return []
+
+
+class Sequential(Module):
+    def __init__(self, *layers: Module) -> None:
+        super().__init__()
+        self.layers = layers
+
+    def forward(self, x: Tensor) -> Tensor:
+        for layer in self.layers:
+            x = layer(x)
+        return x
+
+    def parameters(self) -> list:
+        params = []
+        for layer in self.layers:
+            params += layer.parameters()
+        return params
