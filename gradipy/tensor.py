@@ -83,6 +83,15 @@ class Tensor:
         out._backward = _backward
         return out
 
+    def silu(self) -> "Tensor":
+        out = Tensor(self.data * (1.0 / (1.0 + np.exp(-self.data))))
+
+        def _backward() -> None:
+            pass
+
+        out._backward = _backward
+        return out
+
     def dropout(self: "Tensor", p: float = 0.5):
         if p < 0 or p > 1:
             raise ValueError(f"dropout probability should be between 0 and 1, but got {p}")
@@ -249,7 +258,7 @@ class Tensor:
         return out
 
     def backward(self) -> None:
-        """Autograd engince that does topological sort to call `.backward()`"""
+        """Autograd engine that does topological sort to call `.backward()`"""
         topo = []
         visited = set()
 

@@ -32,13 +32,13 @@ class AlexNet(nn.Module):
         )
         self.avgpool = nn.AdaptiveAvgPool2d(6)
         self.classifier = nn.Sequential(
-            # nn.Dropout(dropout),
+            # nn.Dropout(p=dropout),
             nn.Linear(256 * 6 * 6, 4096),
             nn.ReLU(),
-            # nn.Dropout(dropout),
+            # nn.Dropout(p=dropout),
             nn.Linear(4096, 4096),
             nn.ReLU(),
-            nn.Linear(4096, 1000),
+            nn.Linear(4096, num_classes),
         )
 
     def forward(self, x: Tensor) -> Tensor:
@@ -48,7 +48,7 @@ class AlexNet(nn.Module):
         x = self.classifier(x)
         return x
 
-    def load_weights(self, weights: Sequence[Tensor]) -> None:
+    def from_pretrained(self, weights: Sequence[Tensor]) -> None:
         index = 0
         trainable_layers = [
             l for l in self.features.layers + self.classifier.layers if l.name in ["Conv2d", "Linear"]
@@ -69,7 +69,7 @@ def load_weights_from_pytorch(save_directory="./weights"):
         with open(save_path, "wb") as file:
             file.write(response.content)
     # parse it into a list of Tensors using torch
-    weights = []
+    weights: list = []
     state_dict = torch.load(save_path)
     for key, value in state_dict.items():
         # print(f"Key: {key}, Tensor Shape: {value.shape}")
@@ -111,7 +111,7 @@ def pytorch_alexnet(img):
 def gradipy_alexnet(img):
     alexnet = AlexNet()
     weights = load_weights_from_pytorch()
-    alexnet.load_weights(weights)
+    alexnet.from_pretrained(weights)
     logits = alexnet(Tensor(img.numpy()))
     idx = np.argmax(logits.data, axis=1)[0]
     value = np.max(logits.data, axis=1)[0]
@@ -130,4 +130,3 @@ if __name__ == "__main__":
     print(f"GradiPy: {idx_=}, {value_=}, {cls_=}")
     np.testing.assert_allclose(logits.data, logits_.data, atol=1e-4)
     assert idx == idx_ and int(value) == int(value_) and cls == cls_
-    load_weights_from_pytorch()
