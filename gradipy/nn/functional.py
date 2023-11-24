@@ -1,4 +1,3 @@
-import numpy as np
 from gradipy.tensor import Tensor
 
 
@@ -36,3 +35,7 @@ def adaptive_avg_pool2d(input: Tensor, output_size: int) -> Tensor:
 
 def cross_entropy(input: Tensor, target: Tensor) -> Tensor:
     return input.cross_entropy(target)
+
+
+def flatten(input: Tensor) -> Tensor:
+    return input.flatten()

@@ -46,8 +46,6 @@ def test_BatchNorm1d():
             # bn.running_var.numpy(),
         )
 
-        return (bn.running_var.numpy(),)
-
     def test_gradipy():
         i = Tensor(ii)
         bn = nn.BatchNorm1d(num_features)
@@ -56,10 +54,44 @@ def test_BatchNorm1d():
             o.data,
             bn.weight.data,
             bn.bias.data,
-            bn.running_mean,
+            bn.running_mean.data,
             # bn.running_var
             # variance calculation is different from pytorch for some reason.
         )
 
     for x, y in zip(test_pytorch(), test_gradipy()):
+        np.testing.assert_allclose(x, y, atol=1e-5)
+
+
+def test_BatchNorm2d():
+    ii = np.random.randn(32, 3, 64, 64).astype(np.float32)
+    num_features = ii.shape[1]  # input channel
+
+    def test_pytorch():
+        i = torch.from_numpy(ii)
+        bn = ptnn.BatchNorm2d(num_features)
+        o = bn(i)
+        return (
+            o.detach().numpy(),
+            bn.weight.detach().numpy(),
+            bn.bias.detach().numpy(),
+            bn.running_mean.numpy(),
+            bn.running_var.numpy(),
+        )
+
+    def test_gradipy():
+        i = Tensor(ii)
+        bn = nn.BatchNorm2d(num_features)
+        o = bn(i)
+        return (
+            o.data,
+            bn.weight.data,
+            bn.bias.data.data,
+            bn.running_mean.data,
+            bn.running_var.data
+            # variance calculation is different from pytorch for some reason.
+        )
+
+    for x, y in zip(test_pytorch(), test_gradipy()):
+        print(x.shape, y.shape)
         np.testing.assert_allclose(x, y, atol=1e-5)
