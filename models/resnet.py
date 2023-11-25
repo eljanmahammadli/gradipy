@@ -1,66 +1,16 @@
-import os, requests, sys
-from typing import Optional, Callable, Type, Union, List, Any, Sequence
-from PIL import Image
-from io import BytesIO
-import numpy as np
-import torch
-from torchvision import transforms
+from typing import Optional, Callable, Type, Union, List
 from gradipy.tensor import Tensor
 import gradipy.nn as nn
 import gradipy.nn.functional as F
-from .imagenet import IMAGENET_CATEGORIES
-
-
-def load_weights_from_pytorch(save_directory="./weights"):
-    # download the file if it doesn't exist
-    url = "https://download.pytorch.org/models/resnet50-0676ba61.pth"
-    os.makedirs(save_directory, exist_ok=True)
-    filename = url.split("/")[-1]
-    save_path = os.path.join(save_directory, filename)
-    if not os.path.exists(save_path):
-        response = requests.get(url)
-        with open(save_path, "wb") as file:
-            file.write(response.content)
-    weights: list = []
-    state_dict = torch.load(save_path)
-    for key, value in state_dict.items():
-        # print(f"Key: {key}, --> Tensor Shape: {value.shape}")
-        if "fc.weight" in key:
-            weights.append(Tensor(value.detach().numpy().transpose(1, 0)))
-        else:
-            weights.append(Tensor(value.detach().numpy()))
-    return weights
-
-
-def load_and_preprocess_image(url):
-    preprocess = transforms.Compose(
-        [
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ]
-    )
-    response = requests.get(url)
-    img = Image.open(BytesIO(response.content))
-    img = preprocess(img)
-    img = img.unsqueeze(0)  # Add batch dimension
-    return Tensor(img.data)
+from extra.helpers import fetch
 
 
 def conv3x3(
     in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1
 ) -> nn.Conv2d:
     """3x3 convolution with padding"""
-    return nn.Conv2d(
-        in_planes,
-        out_planes,
-        kernel_size=3,
-        stride=stride,
-        padding=dilation,
-        # groups=groups,
-        # bias=False,
-        # dilation=dilation,
-    )
+    # TODO: implement dilation and groups
+    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=dilation, bias=False)
 
 
 def conv1x1(in_planes: int, out_planes: int, stride: int = 1) -> nn.Conv2d:
@@ -100,11 +50,9 @@ class BasicBlock(nn.Module):
 
     def forward(self, x: Tensor) -> Tensor:
         identity = x
-
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
-
         out = self.conv2(out)
         out = self.bn2(out)
 
@@ -118,12 +66,6 @@ class BasicBlock(nn.Module):
 
 
 class Bottleneck(nn.Module):
-    # Bottleneck in torchvision places the stride for downsampling at 3x3 convolution(self.conv2)
-    # while original implementation places the stride at the first 1x1 convolution(self.conv1)
-    # according to "Deep residual learning for image recognition" https://arxiv.org/abs/1512.03385.
-    # This variant is also known as ResNet V1.5 and improves accuracy according to
-    # https://ngc.nvidia.com/catalog/model-scripts/nvidia:resnet_50_v1_5_for_pytorch.
-
     expansion: int = 4
 
     def __init__(
@@ -144,7 +86,7 @@ class Bottleneck(nn.Module):
         # Both self.conv2 and self.downsample layers downsample the input when stride != 1
         self.conv1 = conv1x1(inplanes, width)
         self.bn1 = norm_layer(width)
-        self.conv2 = conv3x3(width, width, stride)  # , groups, dilation
+        self.conv2 = conv3x3(width, width, stride)
         self.bn2 = norm_layer(width)
         self.conv3 = conv1x1(width, planes * self.expansion)
         self.bn3 = norm_layer(planes * self.expansion)
@@ -223,6 +165,7 @@ class ResNet(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
+        # TODO: align with torch here
         # for m in self.modules():
         #     if isinstance(m, nn.Conv2d):
         #         nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
@@ -288,7 +231,6 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x: Tensor) -> Tensor:
-        # See note [TorchScript super()]
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -304,11 +246,15 @@ class ResNet(nn.Module):
         x = self.fc(x)
         return x
 
-    def from_pretrained(self, weights: Sequence[Tensor]) -> None:
-        index = 0
-        layer_names = ["Conv2d", "BatchNorm2d", "Linear"]
-        trainable_layers = [l for l in self.modules() if l.name in layer_names]
-        for layer in trainable_layers:
+    def from_pretrained(self) -> None:
+        weights, index = [], 0
+        url = "https://download.pytorch.org/models/resnet50-0676ba61.pth"
+        for key, value in fetch(url).items():
+            if "fc.weight" in key:
+                weights.append(Tensor(value.detach().numpy().transpose(1, 0)))
+            else:
+                weights.append(Tensor(value.detach().numpy()))
+        for layer in self.modules():
             if layer.name == "Conv2d":
                 layer.weight = weights[index]
                 index += 1  # weight
@@ -324,40 +270,3 @@ class ResNet(nn.Module):
                 )
                 layer.training = False  # in inference mode this has to be False
                 index += 4  # running_mean + running_var + weight, bias
-
-
-def _resnet(
-    block: Type[Union[BasicBlock, Bottleneck]],
-    layers: List[int],
-    # weights: Optional[WeightsEnum],
-    # progress: bool,
-    **kwargs: Any,
-) -> ResNet:
-    model = ResNet(block, layers, **kwargs)
-
-    return model
-
-
-if __name__ == "__main__":
-    url = "https://us.feliway.com/cdn/shop/articles/7_Reasons_Why_Humans_Cats_Are_A_Match_Made_In_Heaven-9.webp?v=1667409797"
-    img = load_and_preprocess_image(url)
-    print(img.shape)
-    resnet50 = _resnet(block=Bottleneck, layers=[3, 4, 6, 3])
-    weights = load_weights_from_pytorch()
-    resnet50.from_pretrained(weights)
-    from pprint import pprint
-
-    # pprint([i.name for i in resnet50.modules()])
-    # sys.exit()
-    logits = resnet50(img)
-    debug = True
-    if debug:
-        import matplotlib.pyplot as plt
-
-        plt.plot(logits.transpose().data)
-        plt.show()
-    idx = np.argmax(logits.data, axis=1)[0]
-    value = np.max(logits.data, axis=1)[0]
-    cls = IMAGENET_CATEGORIES[idx]
-    print(logits.shape)
-    print(idx, value, cls)

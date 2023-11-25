@@ -1,9 +1,9 @@
 import argparse, timeit
 import numpy as np
 from gradipy.tensor import Tensor
-from models.alexnet import AlexNet
-from extra.imagenet import IMAGENET_CATEGORIES
+from models.resnet import ResNet, Bottleneck
 from extra.helpers import load_and_preprocess_image
+from extra.imagenet import IMAGENET_CATEGORIES
 
 
 if __name__ == "__main__":
@@ -12,14 +12,14 @@ if __name__ == "__main__":
     parser.add_argument("--test", action="store_true", help="Use a predefined URL for testing.")
     args = parser.parse_args()
     if args.test:
-        test_url = "https://images.theconversation.com/files/86272/original/image-20150624-31498-1med6rz.jpg?ixlib=rb-1.1.0&q=45&auto=format&w=926&fit=clip"
+        test_url = "https://us.feliway.com/cdn/shop/articles/7_Reasons_Why_Humans_Cats_Are_A_Match_Made_In_Heaven-9.webp?v=1667409797"
         args.url = test_url
     elif not args.url:
         parser.error("Please provide the URL of an image to classify.")
 
     img = Tensor(load_and_preprocess_image(args.url))
     st = timeit.default_timer()
-    resnet50 = AlexNet()
+    resnet50 = ResNet(block=Bottleneck, layers=[3, 4, 6, 3])
     resnet50.from_pretrained()
     logits = resnet50(img)
     idx = np.argmax(logits.data, axis=1)[0]
@@ -29,9 +29,9 @@ if __name__ == "__main__":
     print(f"Predicted in {et-st:.3f} seconds. Idx: {idx}, Logit: {value:.3f}, Category: {cls}")
 
     if args.test:
-        expected_idx = 36
-        expected_value = 24.387
-        expected_cls = "terrapin"
+        expected_idx = 281
+        expected_value = 10.254
+        expected_cls = "tabby"
 
         assert idx == expected_idx, f"Expected index: {expected_idx}, Actual index: {idx}"
         assert np.isclose(
