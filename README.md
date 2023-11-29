@@ -54,6 +54,10 @@ for epoch in range(epochs + 1):
 
     # log the results on each epoch...
 ```
+In order to run example architectures, refer to the `models/` and run the following command:
+```bash
+python -m examples.resnet "link_to_the_image"
+```
 
 ## Installation
 You can install gradipy using `pip`. It is recommended to create a virtual environment before installing the library.
@@ -81,11 +85,9 @@ python -m pytest
 Here's a list of features we plan to implement in gradipy, along with their current status:
 
 ### To-Do
-- [ ] Conv2d backward pass
-- [ ] Batchnorm
-- [ ] Add more operations and their gradients
-- [ ] Backward passes for: `mul` (problem with broadcasting), `tanh`
-- [ ] Convolutional layers for image processing
-- [ ] More Loss functions (`nn.MSELoss` and `nn.NLLLoss`)
-- [ ] Recurrent layers for sequence data
-- [ ] GPU acceleration (no idea how to do that)
+- Backward pass for Conv2d and BatchNorm2d
+- Add more operations and their gradients
+- Backward passes for: `mul` (problem with broadcasting), `tanh`
+- More Loss functions (`nn.MSELoss` and `nn.NLLLoss`)
+- Recurrent layers for sequence data
+- CPU acceleration (no idea how to do that)
