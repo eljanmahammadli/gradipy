@@ -1,4 +1,4 @@
-
+![Logo](https://github.com/eljanmahammadli/gradipy/blob/main/logo.png)
 # gradipy: A Lightweight Neural Network Library
 ![Tests](https://github.com/eljanmahammadli/gradipy/actions/workflows/ci.yml/badge.svg)
 
