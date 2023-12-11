@@ -12,16 +12,6 @@ While gradipy may not be your top-tier production tool (we'll leave that to the 
 
 Additionally, any contributions to gradipy are welcomed. Given the evolving nature of the project, there might be seminar bugs or opportunities to refine design choices. Your input is appreciated in making gradipy even better.
 
-## Desired features to add:
-- PyTorch like API for most important blocks for training NNs 
-- Convolutional layers for image processing
-- Recurrent layers for sequence data
-- Potentially GPU acceleration
-
-Please note that the library is currently in its early stages, and these features are expected in future updates.
-
-
-
 ## Sample Usage
 
 In this example, we define a simple feedforward neural network to train classifier on the MNIST data. (please refer to the [example usage](https://github.com/eljanmahammadli/gradipy/blob/main/examples/mnist.py)): 
@@ -90,8 +80,7 @@ Here's a list of features we plan to implement in gradipy, along with their curr
 
 ### To-Do
 - Backward pass for Conv2d and BatchNorm2d
-- Add more operations and their gradients
 - Backward passes for: `mul` (problem with broadcasting), `tanh`
 - More Loss functions (`nn.MSELoss` and `nn.NLLLoss`)
 - Recurrent layers for sequence data
-- CPU acceleration (no idea how to do that)
+- GPU acceleration (no idea how to do that, openCL?)
