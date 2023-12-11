@@ -60,7 +60,6 @@ class Linear(Module):
             self.bias = Tensor(np.zeros(out_features, dtype=np.float32))
 
     def forward(self, x: Tensor) -> Tensor:
-        # TODO: implement bias
         if self.bias_ is True:
             return x.matmul(self.weight) + self.bias
         return x.matmul(self.weight) + self.bias

@@ -1,3 +1,4 @@
+import timeit
 import numpy as np
 from gradipy.tensor import Tensor
 import gradipy.nn as nn
@@ -51,6 +52,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam([model.W1, model.W2], lr=lr)
 
 
+st = timeit.default_timer()
 # training loop
 for epoch in range(epochs + 1):
     optimizer.zero_grad()
@@ -67,6 +69,7 @@ for epoch in range(epochs + 1):
             f"Epoch [{epoch+1}/{epochs}], Train Accuracy: {train_accuracy:.4f}, Val Accuracy: {val_accuracy:.4f}"
         )
 
-
+et = timeit.default_timer()
+print(f"Trained in {et-st:.3f} seconds")
 print(evaluate("train"))
 print(evaluate("val"))

@@ -28,6 +28,11 @@ if __name__ == "__main__":
     et = timeit.default_timer()
     print(f"Predicted in {et-st:.3f} seconds. Idx: {idx}, Logit: {value:.3f}, Category: {cls}")
 
+    import matplotlib.pyplot as plt
+
+    plt.plot(logits.transpose().data)
+    plt.show()
+
     if args.test:
         expected_idx = 36
         expected_value = 24.387
