@@ -84,3 +84,5 @@ Here's a list of features we plan to implement in gradipy, along with their curr
 - More Loss functions (`nn.MSELoss` and `nn.NLLLoss`)
 - Recurrent layers for sequence data
 - GPU acceleration (no idea how to do that, openCL?)
+- Implement more model architectures such as Transformers
+    - This requires more components and layers (new activations, layers such as Embedding and so on)
